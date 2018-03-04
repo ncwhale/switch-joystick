@@ -1,6 +1,6 @@
 # Prerequisites
 *.d
-
+*.
 # Compiled Object files
 *.slo
 *.lo
@@ -27,6 +27,11 @@
 *.lib
 
 # Executables
-*.exe
-*.out
+*.eep
+*.bin
 *.app
+*.elf
+*.hex
+*.lss
+*.map
+*.sym
