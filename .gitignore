@@ -35,3 +35,7 @@
 *.lss
 *.map
 *.sym
+
+# IDE files
+.vscode
+.vs
