@@ -39,3 +39,6 @@
 # IDE files
 .vscode
 .vs
+**/dist
+**/deps
+**/build
