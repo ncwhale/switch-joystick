@@ -28,22 +28,6 @@ these buttons for our use.
 
 extern const uint8_t image_data[0x12c1] PROGMEM;
 
-// Main entry point.
-int main(void) {
-	// We'll start by performing hardware and peripheral setup.
-	SetupHardware();
-	// We'll then enable global interrupts for our use.
-	GlobalInterruptEnable();
-	// Once that's done, we'll enter an infinite loop.
-	for (;;)
-	{
-		// We need to run our task to process and deliver data for our IN and OUT endpoints.
-		HID_Task();
-		// We also need to run the main USB management task.
-		USB_USBTask();
-	}
-}
-
 // Configures hardware and peripherals, such as the USB peripherals.
 void SetupHardware(void) {
 	// We need to disable watchdog if enabled by bootloader/fuses.
