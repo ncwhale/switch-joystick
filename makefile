@@ -11,32 +11,45 @@
 
 # Run "make help" for target help.
 
+# Library path.
+LUFA_PATH    = ../LUFA/LUFA
+FASTARDUINO_ROOT=../fast-arduino-lib
+
 # Set the MCU accordingly to your device (e.g. at90usb1286 for a Teensy 2.0++, or atmega16u2 for an Arduino UNO R3)
 MCU          = atmega32u4
 ARCH         = AVR8
 F_CPU        = 16000000
 F_USB        = $(F_CPU)
-OPTIMIZATION = s
-TARGET       = Joystick
-SRC          = $(TARGET).c Descriptors.c $(LUFA_SRC_USB)
-LUFA_PATH    = ../LUFA/LUFA
-CC_FLAGS     = -DUSE_LUFA_CONFIG_HEADER -IConfig/
-LD_FLAGS     =
+VARIANT:=ARDUINO_LEONARDO
+PROGRAMMER:=LEONARDO
+ADDITIONAL_INCLUDES:= -I../LUFA/
 
 # Default target
 all:
+
+SOURCE_ROOT:=./src/
+# include $(FASTARDUINO_ROOT)/Makefile-config.mk
+include $(FASTARDUINO_ROOT)/Makefile-common.mk
+# include $(FASTARDUINO_ROOT)/Makefile-app.mk
+
+# Build flags
+OPTIMIZATION = s
+SRC          = $(sources) $(shell find $(SOURCE_ROOT) -name "*.c") $(LUFA_SRC_USB)
+CC_FLAGS     = -DUSE_LUFA_CONFIG_HEADER -IConfig/ $(includes)
+LD_FLAGS     = -L$(abspath $(FASTARDUINO_ROOT)/dist/ARDUINO_LEONARDO-16MHz/) -lfastarduino 
+#$(basename $(fastarduinolib)) -L$()
+
+TARGET       = Joystick
+
 
 # Include LUFA build script makefiles
 include $(LUFA_PATH)/Build/lufa_core.mk
 include $(LUFA_PATH)/Build/lufa_sources.mk
 include $(LUFA_PATH)/Build/lufa_build.mk
 include $(LUFA_PATH)/Build/lufa_cppcheck.mk
-include $(LUFA_PATH)/Build/lufa_doxygen.mk
+# include $(LUFA_PATH)/Build/lufa_doxygen.mk
 include $(LUFA_PATH)/Build/lufa_dfu.mk
 include $(LUFA_PATH)/Build/lufa_hid.mk
 include $(LUFA_PATH)/Build/lufa_avrdude.mk
 include $(LUFA_PATH)/Build/lufa_atprogram.mk
 
-# Target for LED/buzzer to alert when print is done
-with-alert: all
-with-alert: CC_FLAGS += -DALERT_WHEN_DONE
