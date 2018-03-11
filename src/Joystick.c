@@ -28,30 +28,6 @@ these buttons for our use.
 
 extern const uint8_t image_data[0x12c1] PROGMEM;
 
-// Configures hardware and peripherals, such as the USB peripherals.
-void SetupHardware(void) {
-	// We need to disable watchdog if enabled by bootloader/fuses.
-	MCUSR &= ~(1 << WDRF);
-	wdt_disable();
-
-	// We need to disable clock division before initializing the USB hardware.
-	clock_prescale_set(clock_div_1);
-	// We can then initialize our hardware and peripherals, including the USB stack.
-
-	#ifdef ALERT_WHEN_DONE
-	// Both PORTD and PORTB will be used for the optional LED flashing and buzzer.
-	#warning LED and Buzzer functionality enabled. All pins on both PORTB and \
-PORTD will toggle when printing is done.
-	DDRD  = 0xFF; //Teensy uses PORTD
-	PORTD =  0x0;
-                  //We'll just flash all pins on both ports since the UNO R3
-	DDRB  = 0xFF; //uses PORTB. Micro can use either or, but both give us 2 LEDs
-	PORTB =  0x0; //The ATmega328P on the UNO will be resetting, so unplug it?
-	#endif
-	// The USB stack should be initialized last.
-	USB_Init();
-}
-
 // Fired to indicate that the device is enumerating.
 void EVENT_USB_Device_Connect(void) {
 	// We can indicate that we're enumerating here (via status LEDs, sound, etc.).
