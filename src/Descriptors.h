@@ -6,6 +6,9 @@
 
 #include <avr/pgmspace.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 // Type Defines
 // Device Configuration Descriptor Structure
 typedef struct
@@ -53,4 +56,7 @@ uint16_t CALLBACK_USB_GetDescriptor(
 	const void** const DescriptorAddress
 ) ATTR_WARN_UNUSED_RESULT ATTR_NON_NULL_PTR_ARG(3);
 
+#ifdef __cplusplus
+} // for extern C
+#endif 
 #endif
