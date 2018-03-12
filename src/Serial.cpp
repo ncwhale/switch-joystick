@@ -1,9 +1,27 @@
 #include "Serial.h"
 
+enum {
+	INIT = 0,
+	W_CONTROL,
+	W_NUMBER
+} Serial_State;
+
+Serial_Control_Type control_map_buffer[buffer_size];
+
+// Only 1 byte for tx, only empty cache reported.
+unsigned char tx_byte = 0;
+
 // Register ISR for RX
 ISR(USART1_RX_vect) {
 	// TODO: write stage code.
-	
+	if(tx_byte != 0) {
+		UDR1 = tx_byte;
+		tx_byte = 0;
+	}
+}
+
+ISR(USART1_TX_vect) {
+	// Do nonthing?
 }
 
 void Serial_Init() {

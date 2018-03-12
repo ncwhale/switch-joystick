@@ -5,6 +5,15 @@
 #include <avr/interrupt.h>
 #define BAUD 123
 
+const unsigned char buffer_size = 255;
+
+typedef struct {
+	unsigned char control;
+	unsigned char data[7];
+} Serial_Control_Type;
+
+extern Serial_Control_Type control_map_buffer[buffer_size];
+
 // Init serial port.
 void Serial_Init();
 
@@ -39,9 +48,9 @@ extern "C" {
 	// void TIMER4_OVF_vect(void) __attribute__ ((signal));
 	// void TWI_vect(void) __attribute__ ((signal));
 	// void WDT_vect(void) __attribute__ ((signal));
-	void USART1_RX_vect(void) __attribute__ ((signal));
-	void USART1_TX_vect(void) __attribute__ ((signal));
-	void USART1_UDRE_vect(void) __attribute__ ((signal));
+	// void USART1_RX_vect(void) __attribute__ ((signal));
+	// void USART1_TX_vect(void) __attribute__ ((signal));
+	// void USART1_UDRE_vect(void) __attribute__ ((signal));
 	// void EE_READY_vect(void) __attribute__ ((signal));
 }
 /// @endcond
