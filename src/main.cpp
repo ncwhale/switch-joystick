@@ -11,6 +11,7 @@ void SetupHardware(void) {
 	// We need to disable clock division before initializing the USB hardware.
 	clock_prescale_set(clock_div_1);
 	// We can then initialize our hardware and peripherals, including the USB stack.
+	Serial_Init();
 
 	// The USB stack should be initialized last.
 	USB_Init();
