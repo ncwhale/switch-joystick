@@ -19,7 +19,7 @@ void SetupHardware(void) {
 // Main entry point.
 int main(void) {
 	// We'll start by performing hardware and peripheral setup.
-	board::init();
+	// board::init();
 	SetupHardware();
 	// We'll then enable global interrupts for our use.
 	GlobalInterruptEnable();

@@ -29,14 +29,16 @@ all:
 
 SOURCE_ROOT:=./src/
 # include $(FASTARDUINO_ROOT)/Makefile-config.mk
-include $(FASTARDUINO_ROOT)/Makefile-common.mk
+# include $(FASTARDUINO_ROOT)/Makefile-common.mk
 # include $(FASTARDUINO_ROOT)/Makefile-app.mk
 
 # Build flags
 OPTIMIZATION = s
-SRC          = $(sources) $(shell find $(SOURCE_ROOT) -name "*.c") $(LUFA_SRC_USB)
-CC_FLAGS     = -DUSE_LUFA_CONFIG_HEADER -IConfig/ $(includes)
-LD_FLAGS     = -L$(abspath $(FASTARDUINO_ROOT)/dist/ARDUINO_LEONARDO-16MHz/) -lfastarduino 
+SRC          = $(shell find $(SOURCE_ROOT) -name "*.c*") $(LUFA_SRC_USB)
+CC_FLAGS     = -DUSE_LUFA_CONFIG_HEADER -IConfig/ 
+#$(includes)
+LD_FLAGS     = 
+#-L$(abspath $(FASTARDUINO_ROOT)/dist/ARDUINO_LEONARDO-16MHz/) -lfastarduino 
 #$(basename $(fastarduinolib)) -L$()
 
 TARGET       = Joystick

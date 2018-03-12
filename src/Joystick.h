@@ -52,6 +52,9 @@
 
 #include "Descriptors.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 // Type Defines
 // Enumeration for joystick buttons.
 typedef enum {
@@ -120,4 +123,7 @@ void EVENT_USB_Device_ControlRequest(void);
 // Prepare the next report for the host.
 void GetNextReport(USB_JoystickReport_Input_t* const ReportData);
 
+#ifdef __cplusplus
+} // extern "C"
+#endif
 #endif
