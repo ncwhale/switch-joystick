@@ -3,7 +3,7 @@
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
-#define BAUD 123
+#define BAUD 3 // in 16Mhz, 3 for 250k bps 
 
 const unsigned char buffer_size = 255;
 
