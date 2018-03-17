@@ -1,4 +1,5 @@
 #include "Serial.h"
+#include "Joystick.h"
 
 enum {
 	INIT = 0,
@@ -13,13 +14,7 @@ unsigned char tx_byte = 0;
 
 // Register ISR for RX
 ISR(USART1_RX_vect) {
-	// TODO: write stage code.
-	if(UCSR1A & (1 << UDRE1)) {
-		unsigned char d = UDR1;
-		UDR1 = d;
-	} else {
-		tx_byte = UDR1;
-	}
+
 }
 
 ISR(USART1_TX_vect) {
@@ -41,4 +36,16 @@ void Serial_Init() {
 
     /* Set frame format: 8data, 1 stop bit */
     UCSR1C = (3<<UCSZ10);
+}
+
+void Serial_Task() {
+	// Do nothing right now.
+}
+
+void Report_Count(unsigned char count) {
+	if(UCSR1A & (1 << UDRE1)) {
+		UDR1 = count;
+	} else {
+		tx_byte = count;
+	}
 }

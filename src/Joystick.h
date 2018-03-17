@@ -121,8 +121,10 @@ void EVENT_USB_Device_Disconnect(void);
 void EVENT_USB_Device_ConfigurationChanged(void);
 void EVENT_USB_Device_ControlRequest(void);
 // Prepare the next report for the host.
-void GetNextReport(USB_JoystickReport_Input_t* const ReportData);
+// void GetNextReport(USB_JoystickReport_Input_t* const ReportData);
+// void SwapReportBuffer();
 
+extern USB_JoystickReport_Input_t Next_Report_Data;
 #ifdef __cplusplus
 } // extern "C"
 #endif

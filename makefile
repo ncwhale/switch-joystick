@@ -13,6 +13,7 @@
 
 # Library path.
 LUFA_PATH    = ../LUFA/LUFA
+# BOOST_ROOT = ../boost_1_66_0
 FASTARDUINO_ROOT=../fast-arduino-lib
 
 # Set the MCU accordingly to your device (e.g. at90usb1286 for a Teensy 2.0++, or atmega16u2 for an Arduino UNO R3)
@@ -35,8 +36,8 @@ SOURCE_ROOT:=./src/
 # Build flags
 OPTIMIZATION = s
 SRC          = $(shell find $(SOURCE_ROOT) -name "*.c*") $(LUFA_SRC_USB)
-CC_FLAGS     = -DUSE_LUFA_CONFIG_HEADER -IConfig/ 
-#$(includes)
+CC_FLAGS     = -DUSE_LUFA_CONFIG_HEADER -IConfig/
+#-I$(BOOST_ROOT)/ $(includes)
 LD_FLAGS     = 
 #-L$(abspath $(FASTARDUINO_ROOT)/dist/ARDUINO_LEONARDO-16MHz/) -lfastarduino 
 #$(basename $(fastarduinolib)) -L$()

@@ -26,7 +26,8 @@ these buttons for our use.
 
 #include "Joystick.h"
 
-extern const uint8_t image_data[0x12c1] PROGMEM;
+// extern const uint8_t image_data[0x12c1] PROGMEM;
+USB_JoystickReport_Input_t Next_Report_Data;
 
 // Fired to indicate that the device is enumerating.
 void EVENT_USB_Device_Connect(void) {
@@ -73,7 +74,7 @@ void HID_Task(void) {
 			// We'll create a place to store our data received from the host.
 			USB_JoystickReport_Output_t JoystickOutputData;
 			// We'll then take in that data, setting it up in our storage.
-			while(Endpoint_Read_Stream_LE(&JoystickOutputData, sizeof(JoystickOutputData), NULL) != ENDPOINT_RWSTREAM_NoError);
+			while(Endpoint_Read_Stream_LE(&Next_Report_Data, sizeof(JoystickOutputData), NULL) != ENDPOINT_RWSTREAM_NoError);
 			// At this point, we can react to this data.
 
 			// However, since we're not doing anything with this data, we abandon it.
@@ -88,49 +89,54 @@ void HID_Task(void) {
 	if (Endpoint_IsINReady())
 	{
 		// We'll create an empty report.
-		USB_JoystickReport_Input_t JoystickInputData;
+		// USB_JoystickReport_Input_t JoystickInputData;
 		// We'll then populate this report with what we want to send to the host.
-		GetNextReport(&JoystickInputData);
+		// GetNextReport(&JoystickInputData);
+		// SwapReportBuffer();
 		// Once populated, we can output this data to the host. We do this by first writing the data to the control stream.
-		while(Endpoint_Write_Stream_LE(&JoystickInputData, sizeof(JoystickInputData), NULL) != ENDPOINT_RWSTREAM_NoError);
+		while(Endpoint_Write_Stream_LE(&Next_Report_Data, sizeof(Next_Report_Data), NULL) != ENDPOINT_RWSTREAM_NoError);
 		// We then send an IN packet on this endpoint.
 		Endpoint_ClearIN();
 	}
 }
 
-typedef enum {
-	SYNC_CONTROLLER,
-	// SYNC_POSITION,
-	// STOP_X,
-	// STOP_Y,
-	// MOVE_X,
-	// MOVE_Y,
-	// DONE
-} State_t;
-State_t state = SYNC_CONTROLLER;
+// void SwapReportBuffer() {
+// 	// TODO: Get a copy of Next_Report_Data?
+// }
+
+// typedef enum {
+// 	SYNC_CONTROLLER,
+// 	// SYNC_POSITION,
+// 	// STOP_X,
+// 	// STOP_Y,
+// 	// MOVE_X,
+// 	// MOVE_Y,
+// 	// DONE
+// } State_t;
+// State_t state = SYNC_CONTROLLER;
 
 // #define ECHOES 2
 // int echoes = 0;
-USB_JoystickReport_Input_t last_report;
+// USB_JoystickReport_Input_t last_report;
 
-int report_count = 0;
-int xpos = 0;
-int ypos = 0;
-int portsval = 0;
+// int report_count = 0;
+// int xpos = 0;
+// int ypos = 0;
+// int portsval = 0;
 
 // Prepare the next report for the host.
-void GetNextReport(USB_JoystickReport_Input_t* const ReportData) {
+// void GetNextReport(USB_JoystickReport_Input_t* const ReportData) {
 
-	// Prepare an empty report
-	memset(ReportData, 0, sizeof(USB_JoystickReport_Input_t));
-	ReportData->LX = STICK_CENTER;
-	ReportData->LY = STICK_CENTER;
-	ReportData->RX = STICK_CENTER;
-	ReportData->RY = STICK_CENTER;
-	ReportData->HAT = HAT_CENTER;
+// 	// Prepare an empty report
+// 	memset(ReportData, 0, sizeof(USB_JoystickReport_Input_t));
+// 	ReportData->LX = STICK_CENTER;
+// 	ReportData->LY = STICK_CENTER;
+// 	ReportData->RX = STICK_CENTER;
+// 	ReportData->RY = STICK_CENTER;
+// 	ReportData->HAT = HAT_CENTER;
 
-	// Have a try, just move right.
-	ReportData->LX = STICK_MAX;
+// 	// Have a try, just move right.
+// 	ReportData->LX = STICK_MAX;
 
 	// // Repeat ECHOES times the last report
 	// if (echoes > 0)
@@ -229,4 +235,4 @@ void GetNextReport(USB_JoystickReport_Input_t* const ReportData) {
 	// memcpy(&last_report, ReportData, sizeof(USB_JoystickReport_Input_t));
 	// echoes = ECHOES;
 
-}
+// }
