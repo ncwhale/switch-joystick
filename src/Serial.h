@@ -3,6 +3,7 @@
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
+#include <util/atomic.h>
 
 #define BAUD 3 // in 16Mhz, 3 for 250k bps 
 #define CTC_MATCH_OVERFLOW ((F_CPU / 1000) / 8)

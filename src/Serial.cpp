@@ -2,8 +2,6 @@
 #include "FixedRingBuffer.h"
 #include "Joystick.h"
 
-enum { INIT = 0, W_CONTROL, W_NUMBER };
-
 FixedRingBuffer<Serial_Control_Type> control_map_buffer;
 Serial_Control_Type &write_control = control_map_buffer.tail();
 Serial_Control_Type &read_control = control_map_buffer.head();
@@ -147,6 +145,7 @@ void Serial_Task() {
   while (control_map_buffer.isAvailable()) {
     read_control = control_map_buffer.read();
     uint16_t button;
+    int delay_count_calc = 0;
 
     if((read_control.control & 0xF0) == 0xE0) {
       // Update All	1	1	1	0	LX	LY	RX	RY	
@@ -256,17 +255,22 @@ void Serial_Task() {
       sync_report_count = Joystick_Report_Count + SYNC_REPORT_COUNT;
       break;
     case 0xD3:
-      delay_count |= ((int) read_control.data[2]) << 14;    
+      delay_count_calc = ((int) read_control.data[2]) << 14;    
     case 0xD2:
-      delay_count |= ((int) read_control.data[1]) << 7;
+      delay_count_calc |= ((int) read_control.data[1]) << 7;
     case 0xD1:
       // Delay/Sync	1	1	0	1	0	0	x	x	Follow 0~3 Numbers. (ms)(Max ~34min)
-      delay_count |= read_control.data[0];
+      delay_count_calc |= read_control.data[0];
+      ATOMIC_BLOCK(ATOMIC_FORCEON) {
+        delay_count = delay_count_calc;
+      }
       break;
       // Update All	1	1	1	0	LX	LY	RX	RY	
       // Reset All	1	1	1	1	1	1	1	1	Reset Joystick & Clear Buffer.(Hard reset)
     }
     // break when delay_count is set.
-    if(delay_count > 0 || wait_for_report) break;
+    if(delay_count_calc > 0 || wait_for_report) break;
   }
+
+  Report_Count(control_map_buffer.free());  
 }

@@ -32,5 +32,7 @@ int main(void) {
 		HID_Task();
 		// We also need to run the main USB management task.
 		USB_USBTask();
+		// And process serial tasks.
+		Serial_Task();
 	}
 }
