@@ -46,7 +46,7 @@ class FixedRingBuffer {
 		void clear() {
 			read_offset = write_offset;
 		}
-	private:
+	// private: //for debug.
 		T buffer[capacity];
 		unsigned char read_offset;
 		unsigned char write_offset;
