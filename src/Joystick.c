@@ -28,6 +28,7 @@ these buttons for our use.
 
 // extern const uint8_t image_data[0x12c1] PROGMEM;
 USB_JoystickReport_Input_t Next_Report_Data;
+unsigned char Joystick_Report_Count;
 
 // Fired to indicate that the device is enumerating.
 void EVENT_USB_Device_Connect(void) {
@@ -93,11 +94,21 @@ void HID_Task(void) {
 		// We'll then populate this report with what we want to send to the host.
 		// GetNextReport(&JoystickInputData);
 		// SwapReportBuffer();
+		++Joystick_Report_Count;
 		// Once populated, we can output this data to the host. We do this by first writing the data to the control stream.
 		while(Endpoint_Write_Stream_LE(&Next_Report_Data, sizeof(Next_Report_Data), NULL) != ENDPOINT_RWSTREAM_NoError);
 		// We then send an IN packet on this endpoint.
 		Endpoint_ClearIN();
 	}
+}
+
+void ResetJoystick(USB_JoystickReport_Input_t* ReportData) {
+	memset(ReportData, 0, sizeof(USB_JoystickReport_Input_t));
+	ReportData->LX = STICK_CENTER;
+	ReportData->LY = STICK_CENTER;
+	ReportData->RX = STICK_CENTER;
+	ReportData->RY = STICK_CENTER;
+	ReportData->HAT = HAT_CENTER;
 }
 
 // void SwapReportBuffer() {

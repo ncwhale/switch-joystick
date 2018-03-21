@@ -124,7 +124,11 @@ void EVENT_USB_Device_ControlRequest(void);
 // void GetNextReport(USB_JoystickReport_Input_t* const ReportData);
 // void SwapReportBuffer();
 
+// For reset joystick reports.
+void ResetJoystick(USB_JoystickReport_Input_t* ReportData);
+
 extern USB_JoystickReport_Input_t Next_Report_Data;
+extern unsigned char Joystick_Report_Count;
 #ifdef __cplusplus
 } // extern "C"
 #endif
