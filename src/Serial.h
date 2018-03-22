@@ -9,14 +9,10 @@
 #define CTC_MATCH_OVERFLOW ((F_CPU / 1000) / 8)
 #define SYNC_REPORT_COUNT 2
 
-const unsigned char buffer_size = 255;
-
 typedef struct {
-	unsigned char control;
-	unsigned char data[7];
+	char control;
+	char data[7];
 } Serial_Control_Type;
-
-// extern Serial_Control_Type control_map_buffer[buffer_size];
 
 // Init serial port.
 void Serial_Init();

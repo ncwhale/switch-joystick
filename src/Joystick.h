@@ -120,9 +120,6 @@ void EVENT_USB_Device_Connect(void);
 void EVENT_USB_Device_Disconnect(void);
 void EVENT_USB_Device_ConfigurationChanged(void);
 void EVENT_USB_Device_ControlRequest(void);
-// Prepare the next report for the host.
-// void GetNextReport(USB_JoystickReport_Input_t* const ReportData);
-// void SwapReportBuffer();
 
 // For reset joystick reports.
 void ResetJoystick(USB_JoystickReport_Input_t* ReportData);

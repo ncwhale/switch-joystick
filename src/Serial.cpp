@@ -3,10 +3,10 @@
 #include "Joystick.h"
 
 FixedRingBuffer<Serial_Control_Type> control_map_buffer;
-Serial_Control_Type &write_control = control_map_buffer.tail();
-Serial_Control_Type &read_control = control_map_buffer.head();
+Serial_Control_Type *write_control = &control_map_buffer.tail();
+Serial_Control_Type *read_control = &control_map_buffer.head();
 bool hard_reset = false;
-int32_t delay_count = 0;
+uint32_t delay_count = 0;
 bool wait_for_report = false;
 unsigned char sync_report_count;
 
@@ -22,35 +22,35 @@ ISR(USART1_RX_vect) {
   rx_byte = UDR1;
   if (rx_byte & 0x80) {
     // It's a control byte.
-    // Write control byte to buffer.
+    // Write control byte to buffer.333333
     // Reset data_count everytime when received control byte.
-    write_control.control = rx_byte & 0x7F;
+    write_control->control = rx_byte;
     data_count = 0;
     switch (rx_byte & 0x70) {
     case 0x00:
-    // Button	1	0	0	0
+    // Button 1 0 0 0
     case 0x20:
-    // Left Stick	1	0	1	0
+    // Left Stick 1 0 1 0
     case 0x30:
-      // Right Stick	1	0	1	1
+      // Right Stick 1 0 1 1
       data_expect = 2;
       break;
     case 0x50:
-      // Delay/Sync	1	1	0	1
+      // Delay/Sync 1 1 0 1
       data_expect = rx_byte & 0x03;
       break;
     case 0x60:
-      // Update All	1	1	1	0
+      // Update All 1 1 1 0
       data_expect = 7;
       break;
     case 0x70:
-      // Reset All	1	1	1	1
+      // Reset All 1 1 1 1
       hard_reset = (rx_byte == (unsigned char)'\xFF');
       data_expect = -1;
       break;
     default:
-      // HAT	1	0	0	1
-      // Reset	1	1	0	0
+      // HAT 1 0 0 1
+      // Reset 1 1 0 0
       data_expect = 0;
       break;
     }
@@ -58,7 +58,7 @@ ISR(USART1_RX_vect) {
     // It's a data byte.
     if (data_count < data_expect) {
       // Fill this data buffer, add count
-      write_control.data[data_count] = rx_byte;
+      write_control->data[data_count] = rx_byte;
       ++data_count;
     }
   }
@@ -66,7 +66,7 @@ ISR(USART1_RX_vect) {
   if (data_count == data_expect) {
     // Full filled, move next.
     write_control = control_map_buffer.write();
-    Report_Count(control_map_buffer.write_offset);
+    Report_Count(control_map_buffer.spare());
     data_expect = -1;
   }
 }
@@ -106,18 +106,21 @@ void Serial_Init() {
 
   // Setup Timer1 for 1ms countdown.
   // CTC mode, Clock/8
-  // TCCR1B |= (1 << WGM12) | (1 << CS11);
+  TCCR1B |= (1 << WGM12) | (1 << CS11);
 
   // Load the high byte, then the low byte
   // into the output compare
-  // OCR1AH = (CTC_MATCH_OVERFLOW >> 8);
-  // OCR1AL = (char)CTC_MATCH_OVERFLOW;
+  OCR1AH = (unsigned char)(CTC_MATCH_OVERFLOW >> 8);
+  OCR1AL = (unsigned char)CTC_MATCH_OVERFLOW;
 
   // Enable the compare match interrupt
-  // TIMSK1 |= (1 << OCIE1A);
+  TIMSK1 |= (1 << OCIE1A);
 
   // Reset joystick when boot.
   // Reset_Joystick();
+  // SET Port D1 to output 0(as GND)
+  DDRD |= (1 << DDD1);
+  PORTD &= ~(1 << PORTD1);
 }
 
 void Reset_Joystick() { ResetJoystick(&Next_Report_Data); }
@@ -126,7 +129,7 @@ void Serial_Task() {
   // if hard_reset flag is set, reset all state at once.
   if (hard_reset) {
     control_map_buffer.clear();
-    Report_Count(control_map_buffer.free());
+    Report_Count(control_map_buffer.spare());
     hard_reset = false;
     wait_for_report = false;
     delay_count = 0;
@@ -148,138 +151,132 @@ void Serial_Task() {
   // bool need_report_buffer = control_map_buffer.isAvailable();
   // Do timing & modify joystick data here.
   if (control_map_buffer.isAvailable()) {
-    read_control = control_map_buffer.read();
-    Report_Count(read_control.control);
     uint16_t button;
-    int32_t delay_count_calc = 0;
+    uint32_t delay_count_calc = 0;
 
-    if(((unsigned char)(read_control.control & 0x70)) == (unsigned char)'\x60') {
-      // Update All	1	1	1	0	LX	LY	RX	RY	
-      // Button First	0	CA	HO	RC	LC	+	-	ZR
-      // Button Second	0	ZL	R	L	X	A	B	Y
-      button = read_control.data[1];
+    read_control = control_map_buffer.read();
+
+    if ((read_control->control & '\x70') == '\x60') {
+      // Update All 1 1 1 0 LX LY RX RY
+      // Button First 0 CA HO RC LC + - ZR
+      // Button Second 0 ZL R L X A B Y
+      button = read_control->data[1];
       button <<= 7;
-      button |= read_control.data[0];
+      button |= read_control->data[0];
       Next_Report_Data.Button = button;
-      // HAT	0	0	0	0	x	x	x	x
-      Next_Report_Data.HAT = read_control.data[2];
-      // Left Stick X	0	x	x	x	x	x	x	x
-      if (read_control.control & 0x08) {
-        Next_Report_Data.LX = read_control.data[3] | 0x80;
+      // HAT 0 0 0 0 x x x x
+      Next_Report_Data.HAT = read_control->data[2];
+      // Left Stick X
+      if (read_control->control & 0x08) {
+        Next_Report_Data.LX = read_control->data[3] | 0x80;
       } else {
-        Next_Report_Data.LX = read_control.data[3];        
+        Next_Report_Data.LX = read_control->data[3];
       }
-      // Left Stick Y	0	x	x	x	x	x	x	x
-      if (read_control.control & 0x04) {
-        Next_Report_Data.LY = read_control.data[4] | 0x80;
+      // Left Stick Y
+      if (read_control->control & 0x04) {
+        Next_Report_Data.LY = read_control->data[4] | 0x80;
       } else {
-        Next_Report_Data.LY = read_control.data[4];        
+        Next_Report_Data.LY = read_control->data[4];
       }
-      // Right Stick X	0	x	x	x	x	x	x	x
-      if (read_control.control & 0x02) {
-        Next_Report_Data.RX = read_control.data[5] | 0x80;
+      // Right Stick X
+      if (read_control->control & 0x02) {
+        Next_Report_Data.RX = read_control->data[5] | 0x80;
       } else {
-        Next_Report_Data.RX = read_control.data[5];        
+        Next_Report_Data.RX = read_control->data[5];
       }
-      // Right Stick Y	0	x	x	x	x	x	x	x
-      if (read_control.control & 0x01) {
-        Next_Report_Data.RY = read_control.data[6] | 0x80;
+      // Right Stick Y
+      if (read_control->control & 0x01) {
+        Next_Report_Data.RY = read_control->data[6] | 0x80;
       } else {
-        Next_Report_Data.RY = read_control.data[6];        
+        Next_Report_Data.RY = read_control->data[6];
       }
 
       // continue;
     } else {
-    
-    switch (read_control.control & 0x7F) {
-    case 0x00:
-      // Button	1	0	0	0	0	0	0	0	2 Number for 14 button 1-press/0-release
-      button = read_control.data[1];
-      button <<= 7;
-      button |= read_control.data[0];
-      Next_Report_Data.Button = button;
-      break;
-    case 0x10:
-    case 0x11:
-    case 0x12:
-    case 0x13:
-    case 0x14:
-    case 0x15:
-    case 0x16:
-    case 0x17:
-    case 0x18:
-      // HAT	1	0	0	1	x	x	x	x	HAT direction in low 4 bits(0~8)
-      Next_Report_Data.HAT = read_control.control & 0x0F;
-      break;
-    case '\x20':
-      // Left Stick	1	0	1	0	0	x	0	y	x/y high bits. Follow 2 numbers.
-      Next_Report_Data.LX = read_control.data[0];
-      Next_Report_Data.LY = read_control.data[1];
-      break;
-    case 0x21:
-      // Left Stick	1	0	1	0	0	x	0	y	x/y high bits. Follow 2 numbers.
-      Next_Report_Data.LX = read_control.data[0];
-      Next_Report_Data.LY = read_control.data[1] | 0x80;
-      break;
-    case 0x24:
-      // Left Stick	1	0	1	0	0	x	0	y	x/y high bits. Follow 2 numbers.
-      Next_Report_Data.LX = read_control.data[0] | 0x80;
-      Next_Report_Data.LY = read_control.data[1];
-      break;
-    case 0x25:
-      // Left Stick	1	0	1	0	0	x	0	y	x/y high bits. Follow 2 numbers.
-      Next_Report_Data.LX = read_control.data[0] | 0x80;
-      Next_Report_Data.LY = read_control.data[1] | 0x80;
-      break;
-    case 0x30:
-      // Right Stick	1	0	1	0	0	x	0	y	x/y high bits. Follow 2 numbers.
-      Next_Report_Data.RX = read_control.data[0];
-      Next_Report_Data.RY = read_control.data[1];
-      break;
-    case 0x31:
-      // Right Stick	1	0	1	0	0	x	0	y	x/y high bits. Follow 2 numbers.
-      Next_Report_Data.RX = read_control.data[0];
-      Next_Report_Data.RY = read_control.data[1] | 0x80;
-      break;
-    case 0x34:
-      // Right Stick	1	0	1	0	0	x	0	y	x/y high bits. Follow 2 numbers.
-      Next_Report_Data.RX = read_control.data[0] | 0x80;
-      Next_Report_Data.RY = read_control.data[1];
-      break;
-    case 0x35:
-      // Right Stick	1	0	1	0	0	x	0	y	x/y high bits. Follow 2 numbers.
-      Next_Report_Data.RX = read_control.data[0] | 0x80;
-      Next_Report_Data.RY = read_control.data[1] | 0x80;
-      break;
-    case 0x40:
-      // Reset	1	1	0	0	0	0	0	0	Release all button&Hat/Sticks in center
-      Reset_Joystick();
-      break;
-    case 0x50:
-      // Delay/Sync	1	1	0	1	0	0	x	x	Follow 0~3 Numbers. (ms)(Max ~34min)
-      wait_for_report = true;
-      sync_report_count = Joystick_Report_Count + SYNC_REPORT_COUNT;
-      break;
-    case 0x53:
-      delay_count_calc = ((int) read_control.data[2]) << 14;    
-    case 0x52:
-      delay_count_calc |= ((int) read_control.data[1]) << 7;
-    case 0x51:
-      // Delay/Sync	1	1	0	1	0	0	x	x	Follow 0~3 Numbers. (ms)(Max ~34min)
-      delay_count_calc |= read_control.data[0];
-      ATOMIC_BLOCK(ATOMIC_FORCEON) {
-        delay_count = delay_count_calc;
+      switch (read_control->control & '\x7F') {
+      case '\x00':
+        // Button 1 0 0 0 0 0 0 0
+        // for 14 button 1-press/0-release
+        button = read_control->data[1];
+        button <<= 7;
+        button |= read_control->data[0];
+        Next_Report_Data.Button = button;
+        break;
+      case '\x10':
+      case '\x11':
+      case '\x12':
+      case '\x13':
+      case '\x14':
+      case '\x15':
+      case '\x16':
+      case '\x17':
+      case '\x18':
+        // HAT 1 0 0 1 x x x x
+        Next_Report_Data.HAT = read_control->control & 0x0F;
+        break;
+      case '\x20':
+        // Left Stick 1 0 1 0 0 x 0 y
+        Next_Report_Data.LX = read_control->data[0];
+        Next_Report_Data.LY = read_control->data[1];
+        break;
+      case '\x21':
+        // Left Stick 1 0 1 0 0 x 0 y
+        Next_Report_Data.LX = read_control->data[0];
+        Next_Report_Data.LY = read_control->data[1] | 0x80;
+        break;
+      case '\x24':
+        // Left Stick 1 0 1 0 0 x 0 y
+        Next_Report_Data.LX = read_control->data[0] | 0x80;
+        Next_Report_Data.LY = read_control->data[1];
+        break;
+      case '\x25':
+        // Left Stick 1 0 1 0 0 x 0 y
+        Next_Report_Data.LX = read_control->data[0] | 0x80;
+        Next_Report_Data.LY = read_control->data[1] | 0x80;
+        break;
+      case '\x30':
+        // Right Stick 1 0 1 0 0 x 0 y
+        Next_Report_Data.RX = read_control->data[0];
+        Next_Report_Data.RY = read_control->data[1];
+        break;
+      case '\x31':
+        // Right Stick 1 0 1 0 0 x 0 y
+        Next_Report_Data.RX = read_control->data[0];
+        Next_Report_Data.RY = read_control->data[1] | 0x80;
+        break;
+      case '\x34':
+        // Right Stick 1 0 1 0 0 x 0 y
+        Next_Report_Data.RX = read_control->data[0] | 0x80;
+        Next_Report_Data.RY = read_control->data[1];
+        break;
+      case '\x35':
+        // Right Stick 1 0 1 0 0 x 0 y
+        Next_Report_Data.RX = read_control->data[0] | 0x80;
+        Next_Report_Data.RY = read_control->data[1] | 0x80;
+        break;
+      case '\x40':
+        // Reset 1 1 0 0 0 0 0 0
+        Reset_Joystick();
+        break;
+      case '\x50':
+        // Delay/Sync 1 1 0 1 0 0 x x
+        wait_for_report = true;
+        sync_report_count = Joystick_Report_Count + SYNC_REPORT_COUNT;
+        break;
+      case '\x53':
+        delay_count_calc = ((int)read_control->data[2]) << 14;
+      case '\x52':
+        delay_count_calc |= ((int)read_control->data[1]) << 7;
+      case '\x51':
+        delay_count_calc |= read_control->data[0];
+        ATOMIC_BLOCK(ATOMIC_FORCEON) { delay_count = delay_count_calc; }
+        break;
       }
-      break;
-      // Update All	1	1	1	0	LX	LY	RX	RY	
-      // Reset All	1	1	1	1	1	1	1	1	Reset Joystick & Clear Buffer.(Hard reset)
-    }
     }
     // break when delay_count is set.
     // if((delay_count_calc > 0 ) || wait_for_report) break;
-    // Report_Count(control_map_buffer.free());
-    // Report_Count(Next_Report_Data.HAT);
+    Report_Count(control_map_buffer.spare());
   }
 
-  // if (need_report_buffer)Report_Count(control_map_buffer.read_offset);  
+  // if (need_report_buffer)Report_Count(control_map_buffer.read_offset);
 }

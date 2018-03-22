@@ -4,52 +4,46 @@
 // This is a very very special class with capacity = 128.
 // unsigned char will auto wrap from 0~255.
 // use other capacity will case error.
-template<typename T, unsigned char capacity = 128>
-class FixedRingBuffer {
-	public:
-		FixedRingBuffer(){}
+template <typename T, unsigned char capacity = 128> class FixedRingBuffer {
+public:
+  T buffer[capacity];
+  unsigned char read_offset;
+  unsigned char write_offset;
 
-		// Head point to next will write.
-		T& head(){
-			return buffer[write_offset & 0x7F];
-		}
-		// Tail point to next will read.
-		T& tail(){
-			return buffer[read_offset & 0x7F];
-		}
+public:
+  FixedRingBuffer() : read_offset(0), write_offset(0) {}
 
-		// move wrtie cursor to next, return new write place.
-		T& write(){
-			++write_offset;
-			return head();
-		}
+  // Head point to next will write.
+  T &head() { return buffer[write_offset & 0x7F]; }
+  // Tail point to next will read.
+  T &tail() { return buffer[read_offset & 0x7F]; }
 
-		// read from tail, and move read cursor to next.
-		T& read() {
-			T& it = tail();
-			++read_offset;
-			return it;
-		}
+  // move wrtie cursor to next, return new write place.
+  T *write() {
+    ++write_offset;
+    return &head();
+  }
 
-		bool isAvailable() {
-			// If they are not equal, there are some data.
-			return read_offset != write_offset;
-		}
+  // read from tail, and move read cursor to next.
+  T *read() {
+    T &it = tail();
+    ++read_offset;
+    return &it;
+  }
 
-		unsigned char length() {
-			return (write_offset - read_offset) & 0x7F;
-		}
-		unsigned char free() {
-			return (read_offset - write_offset) & 0x7F;
-		}
+  bool isAvailable() {
+    // If they are not equal, there are some data.
+    return read_offset != write_offset;
+  }
 
-		void clear() {
-			read_offset = write_offset;
-		}
-	// private: //for debug.
-		T buffer[capacity];
-		unsigned char read_offset;
-		unsigned char write_offset;
+  unsigned char length() { return (write_offset - read_offset) & 0x7F; }
+  unsigned char spare() {
+    if (read_offset == write_offset)
+      return capacity;
+    return (read_offset - write_offset) & 0x7F;
+  }
+
+  void clear() { read_offset = write_offset; }
 };
 
-#endif //FIXED_RING_BUFFER_HH
+#endif // FIXED_RING_BUFFER_HH
