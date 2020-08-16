@@ -152,7 +152,7 @@ void Serial_Task() {
   // Do timing & modify joystick data here.
   if (control_map_buffer.isAvailable()) {
     uint16_t button;
-    uint32_t delay_count_calc = 0;
+    uint32_t delay_count_calc;
 
     read_control = control_map_buffer.read();
 
@@ -193,6 +193,9 @@ void Serial_Task() {
 
       // continue;
     } else {
+
+      delay_count_calc = 0;
+
       switch (read_control->control & '\x7F') {
       case '\x00':
         // Button 1 0 0 0 0 0 0 0
