@@ -20,9 +20,9 @@ ARCH         = AVR8
 F_CPU        = 16000000
 F_USB        = $(F_CPU)
 VARIANT:=ARDUINO_LEONARDO
-PROGRAMMER:=avr109
 ADDITIONAL_INCLUDES:= -I../LUFA/
 
+AVRDUDE_PROGRAMMER = avr109
 # Default target
 all:
 
