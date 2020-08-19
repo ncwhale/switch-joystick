@@ -198,9 +198,14 @@ void Serial_Task() {
 
       switch (read_control->control & '\x7F') {
       case '\x00':
-        // Button 1 0 0 0 0 0 0 0
-        // for 14 button 1-press/0-release
-        button = read_control->data[1];
+      case '\x01':
+      case '\x02':
+      case '\x03':
+        // Button 1 0 0 0 0 0 x x
+        // for 16 button 1-press/0-release
+        button = read_control->control;
+        button <<= 7;
+        button |= read_control->data[1];
         button <<= 7;
         button |= read_control->data[0];
         Next_Report_Data.Button = button;
