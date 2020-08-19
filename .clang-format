@@ -10,8 +10,8 @@ AccessModifierOffset: -4
 #AlignOperands:   true
 #AlignTrailingComments: true
 #AllowAllParametersOfDeclarationOnNextLine: true
-#AllowShortBlocksOnASingleLine: false
-#AllowShortCaseLabelsOnASingleLine: false
+AllowShortBlocksOnASingleLine: true
+AllowShortCaseLabelsOnASingleLine: true
 #AllowShortFunctionsOnASingleLine: All
 AllowShortFunctionsOnASingleLine: Empty
 #AllowShortIfStatementsOnASingleLine: true
@@ -28,15 +28,16 @@ AlwaysBreakTemplateDeclarations: false
 # All brace wrapping specific
 BraceWrapping:   
   AfterClass:      true
-  AfterControlStatement: true
-  AfterEnum:       true
-  AfterFunction:   true
+  AfterCaseLabel:  false
+  AfterControlStatement: Never
+  AfterEnum:       false
+  AfterFunction:   false
   AfterNamespace:  true
   AfterObjCDeclaration: false
-  AfterStruct:     true
-  AfterUnion:      true
-  BeforeCatch:     true
-  BeforeElse:      true
+  AfterStruct:     false
+  AfterUnion:      false
+  BeforeCatch:     false
+  BeforeElse:      false
   IndentBraces:    false
 #BreakBeforeBinaryOperators: None
 #BreakBeforeBraces: Attach
@@ -72,8 +73,7 @@ DerivePointerAlignment: false
 #IncludeIsMainRegex: '([-_](test|unittest))?$'
 #IndentCaseLabels: true
 IndentCaseLabels: false
-#IndentWidth:     2
-IndentWidth:     4
+IndentWidth:     2
 #IndentWrappedFunctionNames: false
 #JavaScriptQuotes: Leave
 #JavaScriptWrapImports: true
@@ -116,8 +116,7 @@ SpacesInContainerLiterals: false
 #SpacesInSquareBrackets: false
 #Standard:        Auto
 Standard:        Cpp11
-#TabWidth:        8
-TabWidth:        4
+TabWidth:        2
 #UseTab:          Never
 UseTab:          Always
 ...

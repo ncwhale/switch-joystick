@@ -5,9 +5,9 @@
 #include <avr/interrupt.h>
 #include <util/atomic.h>
 
-#define BAUD 3 // in 16Mhz, 3 for 250k bps 
+#define BAUD 3 // in 16Mhz, 3 for 250k bps
 #define CTC_MATCH_OVERFLOW ((F_CPU / 1000) / 8)
-#define SYNC_REPORT_COUNT 2
+#define SYNC_REPORT_COUNT 1
 
 typedef struct {
 	char control;
